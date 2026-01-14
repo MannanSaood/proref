@@ -10,25 +10,25 @@
 
 ## Features
 
-### 🔗 Smart Character Linking
+### Smart Character Linking
 - **One-click linking** with automatic library override creation
 - **Auto-make properties editable** — no more teal fields
 - **Unique naming** to prevent conflicts with multiple characters
 - **Animation Only Mode** — skip mesh overrides for better performance
 
-### 🎨 Rig UI Isolation
+### Rig UI Isolation
 - **Automatic rig_ui.py detection** and script isolation
 - **Context-aware execution** — each character gets its own UI context
 - **Script safety validation** — checks for unsafe Python patterns
 - **Auto-execute on link** option for faster workflow
 
-### 🩺 Override Health System
+### Override Health System
 - **One-click health diagnostics** for all library overrides
 - **Detect common issues**: missing references, broken paths, locked properties
 - **Automated repair tools** with smart issue resolution
-- **Targeted resync** — resync single objects without affecting entire hierarchy
+- **Targeted resync** — resync single objects without affecting the entire hierarchy
 
-### 📚 Reference Manager
+### Reference Manager
 - **Visual library overview** with file size and modification dates
 - **Missing file detection** with relocate functionality
 - **Batch operations** — reload multiple libraries at once
@@ -57,7 +57,7 @@
 ### Running Health Checks
 
 1. Click **"Run Health Check"** in the Override Health panel
-2. Review any issues in the health check list
+2. Review any issues in the health checklist
 3. Click **"Repair"** to auto-fix common problems
 
 ### Executing Rig UI
