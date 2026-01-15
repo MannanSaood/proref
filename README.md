@@ -4,14 +4,30 @@
 
 ![Blender Version](https://img.shields.io/badge/Blender-3.6%2B-orange)
 ![License](https://img.shields.io/badge/License-GPL--3.0-blue)
-![Version](https://img.shields.io/badge/Version-1.0.0-green)
+![Version](https://img.shields.io/badge/Version-1.5.0-green)
+
+---
+
+## Supported Formats
+
+| Format | Extensions | Features |
+|--------|------------|----------|
+| **Blender** | `.blend` | Full linking with library overrides |
+| **FBX** | `.fbx` | Animation, custom properties, bone orientation |
+| **USD** | `.usd`, `.usda`, `.usdc`, `.usdz` | Pixar Universal Scene Description |
+| **Alembic** | `.abc` | Baked geometry and animation caches |
+| **glTF** | `.gltf`, `.glb` | Web and real-time 3D |
+| **OBJ** | `.obj` | Legacy geometry exchange |
+| **Collada** | `.dae` | Cross-platform XML exchange |
+| **PLY/STL** | `.ply`, `.stl` | 3D printing and scan data |
 
 ---
 
 ## Features
 
 ### Smart Character Linking
-- **One-click linking** with automatic library override creation
+- **One-click linking/import** with automatic library override creation
+- **Multi-format support** — blend, FBX, USD, Alembic, glTF, and more
 - **Auto-make properties editable** — no more teal fields
 - **Unique naming** to prevent conflicts with multiple characters
 - **Animation Only Mode** — skip mesh overrides for better performance
@@ -31,8 +47,14 @@
 ### Reference Manager
 - **Visual library overview** with file size and modification dates
 - **Missing file detection** with relocate functionality
-- **Batch operations** — reload multiple libraries at once
-- **Quick actions panel** for selected overrides
+- **Batch operations** — reload, relink, version bump
+- **Version detection** — finds v01, v02, etc. and upgrades to latest
+
+### v1.5: Pipeline Features
+- **Batch Relink** — find and replace paths for drive migrations
+- **Version Detection** — auto-detect asset versions and upgrade
+- **CLI/Headless Mode** — render farm support with auto-fix on load
+- **Environment Variables** — use `${PROJECT_DIR}` in paths
 
 ---
 
@@ -51,8 +73,8 @@
 
 1. Open the **Pro Ref** panel in the 3D Viewport sidebar (`N` key)
 2. Click **"Smart Link Character"**
-3. Browse to your character `.blend` file
-4. The character will be linked with automatic overrides
+3. Browse to your character file (supports .blend, .fbx, .usd, .abc, .gltf, etc.)
+4. The character will be linked/imported with automatic setup
 
 ### Running Health Checks
 

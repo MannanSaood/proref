@@ -9,12 +9,14 @@ import bpy
 from . import smart_link
 from . import rig_ui_manager
 from . import override_health
+from . import batch_operations  # v1.5
 
 # Module list
 modules = [
     smart_link,
     rig_ui_manager,
     override_health,
+    batch_operations,  # v1.5
 ]
 
 def register():

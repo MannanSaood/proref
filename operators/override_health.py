@@ -4,11 +4,14 @@ Health checking and repair operations for library overrides
 """
 
 import bpy
+import os
+from datetime import datetime
 from bpy.types import Operator
-from bpy.props import StringProperty
+from bpy.props import StringProperty, EnumProperty
 
 from ..core.validation import OverrideValidator
 from ..core.library_utils import LibraryUtils
+
 
 class PROREF_OT_HealthCheck(Operator):
     """Run comprehensive health check on all library overrides"""
@@ -59,7 +62,7 @@ class PROREF_OT_HealthCheck(Operator):
             # Set issue data
             item.issue_count = len(health_data['issues'])
             all_issues = health_data['issues'] + health_data['warnings']
-            item.issue_description = "; ".join(all_issues[:3])  # First 3 issues
+            item.issue_description = "; ".join(all_issues[:3])
             
             # Set metadata
             if 'locked_bone_count' in health_data['info']:
@@ -70,8 +73,6 @@ class PROREF_OT_HealthCheck(Operator):
             if 'library_path' in health_data['info']:
                 item.library_path = health_data['info']['library_path']
         
-        # Report summary
-        total = len(overrides)
         msg = f"Health check complete: {healthy_count} healthy, {warning_count} warnings, {error_count} errors"
         self.report({'INFO'}, msg)
         
@@ -182,8 +183,6 @@ class PROREF_OT_RepairOverride(Operator):
         # Unlock bones that are fully locked
         unlocked = 0
         for bone in armature.pose.bones:
-            was_locked = False
-            
             # Only unlock if ALL transforms are locked (likely unintentional)
             if all(bone.lock_location) and all(bone.lock_rotation) and all(bone.lock_scale):
                 bone.lock_location = (False, False, False)
@@ -220,7 +219,7 @@ class PROREF_OT_RepairOverride(Operator):
 
 
 class PROREF_OT_ResyncOverride(Operator):
-    """Targeted resync - only resyncs selected override, not full hierarchy"""
+    """Targeted resync - only resyncs selected override"""
     bl_idname = "proref.resync_override"
     bl_label = "Resync Override"
     bl_description = "Resync only this override (preserves other characters' changes)"
@@ -228,7 +227,7 @@ class PROREF_OT_ResyncOverride(Operator):
     
     object_name: StringProperty(name="Object Name")
     
-    resync_mode: bpy.props.EnumProperty(
+    resync_mode: EnumProperty(
         name="Resync Mode",
         items=[
             ('SINGLE', "Single Object", "Resync only this object"),
@@ -259,16 +258,13 @@ class PROREF_OT_ResyncOverride(Operator):
             
             # Perform targeted resync based on mode
             if self.resync_mode == 'SINGLE':
-                # Use single object resync (Blender 3.2+)
                 try:
                     bpy.ops.object.lib_override_resync_clear_single()
                     self.report({'INFO'}, f"Resynced {obj.name} (single)")
                 except AttributeError:
-                    # Fallback for older Blender versions
                     obj.override_library.resync(context.blend_data, context.scene, "APPLY")
                     self.report({'INFO'}, f"Resynced {obj.name}")
             else:
-                # Hierarchy resync - but only for this character's hierarchy
                 bpy.ops.outliner.liboverride_operation(
                     type='OVERRIDE_LIBRARY_RESYNC_HIERARCHY'
                 )
@@ -337,9 +333,6 @@ class PROREF_OT_UpdateLibraryList(Operator):
     bl_description = "Refresh the list of linked libraries in the scene"
     
     def execute(self, context):
-        import os
-        from datetime import datetime
-        
         settings = context.scene.proref_settings
         settings.linked_libraries.clear()
         
@@ -359,7 +352,7 @@ class PROREF_OT_UpdateLibraryList(Operator):
             
             # Get file size and modification date
             if info['exists']:
-                abs_path = info.get('filepath_abs', bpy.path.abspath(info['filepath']))
+                abs_path = bpy.path.abspath(info['filepath'])
                 try:
                     stat = os.stat(abs_path)
                     
@@ -376,13 +369,24 @@ class PROREF_OT_UpdateLibraryList(Operator):
                     mtime = datetime.fromtimestamp(stat.st_mtime)
                     item.last_modified = mtime.strftime("%Y-%m-%d %H:%M")
                     
-                except Exception as e:
+                except Exception:
                     item.file_size = "Unknown"
                     item.last_modified = ""
+            
+            # v1.5: Auto-detect versions if enabled
+            if settings.auto_detect_versions:
+                try:
+                    from ..core.version_utils import VersionUtils
+                    version_info = VersionUtils.get_version_info(lib.filepath)
+                    
+                    if version_info['current_version'] is not None:
+                        item.version_number = version_info['current_version']
+                        item.has_newer_version = version_info['has_newer']
+                except Exception as e:
+                    print(f"Version detection failed for {lib.name}: {e}")
         
         self.report({'INFO'}, f"Found {len(libraries)} linked libraries")
         return {'FINISHED'}
-
 
 
 class PROREF_OT_RelocateLibrary(Operator):
@@ -449,72 +453,6 @@ class PROREF_OT_ReloadLibrary(Operator):
             return {'CANCELLED'}
 
 
-class PROREF_OT_SelectAllLibraries(Operator):
-    """Select all libraries for batch operations"""
-    bl_idname = "proref.select_all_libraries"
-    bl_label = "Select All"
-    bl_description = "Select all libraries for batch operations"
-    
-    def execute(self, context):
-        settings = context.scene.proref_settings
-        for lib in settings.linked_libraries:
-            lib.is_selected = True
-        return {'FINISHED'}
-
-
-class PROREF_OT_DeselectAllLibraries(Operator):
-    """Deselect all libraries"""
-    bl_idname = "proref.deselect_all_libraries"
-    bl_label = "Deselect All"
-    bl_description = "Deselect all libraries"
-    
-    def execute(self, context):
-        settings = context.scene.proref_settings
-        for lib in settings.linked_libraries:
-            lib.is_selected = False
-        return {'FINISHED'}
-
-
-class PROREF_OT_BatchReloadLibraries(Operator):
-    """Reload all selected libraries"""
-    bl_idname = "proref.batch_reload_libraries"
-    bl_label = "Batch Reload"
-    bl_description = "Reload all selected libraries from disk"
-    bl_options = {'REGISTER', 'UNDO'}
-    
-    def execute(self, context):
-        settings = context.scene.proref_settings
-        
-        selected = [lib for lib in settings.linked_libraries if lib.is_selected and lib.exists]
-        
-        if not selected:
-            self.report({'WARNING'}, "No libraries selected (or all missing)")
-            return {'CANCELLED'}
-        
-        success_count = 0
-        fail_count = 0
-        
-        for lib_data in selected:
-            library = bpy.data.libraries.get(lib_data.library_name)
-            if library:
-                try:
-                    library.reload()
-                    success_count += 1
-                except Exception as e:
-                    print(f"Failed to reload {lib_data.library_name}: {e}")
-                    fail_count += 1
-        
-        # Refresh the library list
-        bpy.ops.proref.update_library_list()
-        
-        if fail_count > 0:
-            self.report({'WARNING'}, f"Reloaded {success_count}, failed {fail_count}")
-        else:
-            self.report({'INFO'}, f"Reloaded {success_count} libraries")
-        
-        return {'FINISHED'}
-
-
 # Registration
 classes = (
     PROREF_OT_HealthCheck,
@@ -524,9 +462,6 @@ classes = (
     PROREF_OT_UpdateLibraryList,
     PROREF_OT_RelocateLibrary,
     PROREF_OT_ReloadLibrary,
-    PROREF_OT_SelectAllLibraries,
-    PROREF_OT_DeselectAllLibraries,
-    PROREF_OT_BatchReloadLibraries,
 )
 
 def register():

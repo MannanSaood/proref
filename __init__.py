@@ -6,10 +6,10 @@ Industry-grade character linking, override management, and rig UI handling for B
 bl_info = {
     "name": "Professional Referencing & Rig UI",
     "author": "Your Name",
-    "version": (1, 0, 0),
+    "version": (1, 5, 0),
     "blender": (3, 6, 0),
     "location": "View3D > Sidebar > Pro Ref",
-    "description": "Industry-grade character linking, override management, and rig UI handling",
+    "description": "Professional pipeline tool for character linking, version management, and rig UI handling",
     "warning": "",
     "doc_url": "https://github.com/yourusername/professional_referencing",
     "category": "Rigging",
@@ -22,12 +22,14 @@ from bpy.props import PointerProperty
 from . import properties
 from . import operators
 from . import ui
+from . import cli  # v1.5: CLI support
 
 # Module list for registration
 modules = [
     properties,
     operators,
     ui,
+    cli,  # v1.5
 ]
 
 # Keyboard shortcut keymaps
@@ -106,7 +108,14 @@ def register():
     # Register keyboard shortcuts
     register_keymaps()
     
-    print("Professional Referencing & Rig UI: Registered successfully")
+    # Print registration message
+    if bpy.app.background:
+        print("="*70)
+        print("Professional Referencing & Rig UI v1.5")
+        print("Running in HEADLESS mode - CLI features enabled")
+        print("="*70)
+    else:
+        print("Professional Referencing & Rig UI v1.5: Registered successfully")
 
 
 def unregister():

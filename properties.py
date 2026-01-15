@@ -13,6 +13,7 @@ from bpy.props import (
     CollectionProperty,
 )
 
+
 class OverrideHealthData(PropertyGroup):
     """Stores health check data for individual library overrides"""
     
@@ -68,6 +69,7 @@ class OverrideHealthData(PropertyGroup):
         default=True
     )
 
+
 class LinkedLibraryData(PropertyGroup):
     """Stores information about linked libraries in the scene"""
     
@@ -99,11 +101,27 @@ class LinkedLibraryData(PropertyGroup):
         description="Human-readable file size"
     )
     
-    is_selected: BoolProperty(
+    # v1.5: Selection for batch operations
+    selected: BoolProperty(
         name="Selected",
-        description="Selected for batch operations",
+        description="Select for batch operations",
         default=False
     )
+    
+    # v1.5: Version tracking
+    version_number: IntProperty(
+        name="Version Number",
+        description="Detected version number (0 if no version found)",
+        default=0,
+        min=0
+    )
+    
+    has_newer_version: BoolProperty(
+        name="Has Newer Version",
+        description="True if a newer version is available on disk",
+        default=False
+    )
+
 
 class ProRefSceneSettings(PropertyGroup):
     """Main scene-level settings for the addon"""
@@ -187,6 +205,33 @@ class ProRefSceneSettings(PropertyGroup):
         description="Only show overrides with errors",
         default=False
     )
+    
+    # v1.5: Batch operation settings
+    show_version_info: BoolProperty(
+        name="Show Version Info",
+        description="Display version numbers in reference manager",
+        default=True
+    )
+    
+    auto_detect_versions: BoolProperty(
+        name="Auto Detect Versions",
+        description="Automatically detect version numbers when updating library list",
+        default=True
+    )
+    
+    # v1.5: CLI/Headless settings
+    auto_fix_on_load: BoolProperty(
+        name="Auto-Fix on Load",
+        description="Automatically fix broken links when opening files in headless mode",
+        default=True
+    )
+    
+    use_environment_variables: BoolProperty(
+        name="Use Environment Variables",
+        description="Support environment variables in library paths (e.g., ${PROJECT_DIR})",
+        default=True
+    )
+
 
 # Registration
 classes = (
