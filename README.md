@@ -1,3 +1,9 @@
+<div align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=F5792A&height=200&section=header&text=ProRef&fontSize=80&animation=fadeIn&fontAlignY=35&desc=Advanced%20Pipeline%20Management%20for%20Blender&descAlignY=55&descAlign=50" alt="ProRef Header" />
+</div>
+
+---
+
 # Professional Referencing & Rig UI
 
 **Industry-grade character linking, override management, and rig UI handling for Blender**
